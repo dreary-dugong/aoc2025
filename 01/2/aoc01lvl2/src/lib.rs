@@ -81,37 +81,43 @@ fn parse(input: String) -> anyhow::Result<Vec<(Direction, u32)>> {
 }
 
 fn process(data: Vec<(Direction, u32)>) -> i32 {
-    let mut val = 50;
+    let mut dial = 50;
     let mut zero_count = 0;
 
     for (direction, count) in data.into_iter() {
         let mut count = count as i32;
+
+        // count full rotations
+        zero_count += count / 100;
+        count %= 100;
+
+        // if the count is 0, nothing happens
+        // we handle that edge case here to simplify logic later
+        if count == 0 {
+            continue;
+        }
+
+        // account for the difference between going left and going right
         match direction {
             Direction::Right => {
-                while count >= 100 {
-                    count -= 100;
-                    zero_count += 1;
-                }
-                val += count;
-                if val >= 100 {
-                    zero_count += 1;
-                    val -= 100;
-                }
+                // if we make a full rotation by adding, count it and
+                // ensure the dial stays under 100
+                dial += count;
+                zero_count += dial / 100;
+                dial %= 100;
             }
             Direction::Left => {
-                while count >= 100 {
-                    count -= 100;
+                // if the dial was already at 0, don't double count it
+                // otherwise count it if we rotate past 0
+                if dial != 0 && count >= dial {
                     zero_count += 1;
                 }
-                val -= count;
-                if val == 0 && count != 0 {
-                    zero_count += 1;
-                }
-                if val < 0 {
-                    if (val + count) != 0 {
-                        zero_count += 1;
-                    }
-                    val += 100;
+
+                // python lets you do this by modding a negative
+                // maybe rust has an easier way? Wrapping sub with arbirary max_int?
+                dial -= count;
+                if dial < 0 {
+                    dial += 100;
                 }
             }
         };
