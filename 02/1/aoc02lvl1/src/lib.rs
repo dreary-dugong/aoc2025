@@ -54,6 +54,7 @@ pub fn run(cfg: Config) -> anyhow::Result<u64> {
     Ok(result)
 }
 
+#[derive(Debug)]
 struct Range {
     low: u64,
     high: u64,
@@ -99,17 +100,18 @@ fn process(data: Vec<Range>) -> u64 {
                 }
             // if the digit count is odd, we need to find the first number above
             // it with an even digit count so we can take the prefix and double that
+            // (this will always be the next power of 10)
             } else {
-                lowest_invalid_prefix = 10_u64.pow((low_digit_count / 2) + 1);
+                lowest_invalid_prefix = 10_u64.pow(low_digit_count / 2);
             }
 
             // now get a a representation of the highest invalid id
-            let high_digit_count = range.low.ilog10() + 1;
+            let high_digit_count = range.high.ilog10() + 1;
             let highest_invalid_prefix;
             // if the number of digits is odd, the highest invalid is 9999...
             // one less than the number of digits
             if high_digit_count % 2 == 1 {
-                highest_invalid_prefix = 10_u64.pow(high_digit_count / 2 + 1) - 1;
+                highest_invalid_prefix = 10_u64.pow(high_digit_count / 2) - 1;
             } else {
                 let high_prefix = range.high / 10_u64.pow(high_digit_count / 2);
                 let high_suffix = range.high % 10_u64.pow(high_digit_count / 2);
