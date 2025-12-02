@@ -49,15 +49,59 @@ pub fn run(cfg: Config) -> anyhow::Result<u32> {
     let data = parse(input_string)?;
     let result = process(data);
 
+    println!("{}", result);
+
     Ok(result)
 }
 
-fn parse(input: String) -> anyhow::Result<String> {
-    // remember to change the return type
-    todo!()
+enum Direction {
+    Right,
+    Left,
 }
 
-fn process(data: String) -> u32 {
-    // remember to change the param type
-    todo!()
+fn parse(input: String) -> anyhow::Result<Vec<(Direction, u32)>> {
+    Ok(input
+        .lines()
+        .map(|line| {
+            let mut chars = line.chars();
+            let direction = match chars.next().expect("empty line") {
+                'R' => Direction::Right,
+                'L' => Direction::Left,
+                _ => panic!("bad input line, expected R or L"),
+            };
+
+            let count = chars
+                .collect::<String>()
+                .parse::<u32>()
+                .expect("invalid turn count, expected a number");
+
+            (direction, count)
+        })
+        .collect())
+}
+
+fn process(data: Vec<(Direction, u32)>) -> u32 {
+    let mut val = 50;
+    let mut zero_count = 0;
+
+    for (direction, count) in data.into_iter() {
+        let count = count as i32;
+        val = match direction {
+            Direction::Left => val - count,
+            Direction::Right => val + count,
+        };
+
+        // there's a more elegant way to do this, I'm sure
+        if val < 0 {
+            val = (100 + (val % (-100))) % 100;
+        } else if val > 99 {
+            val %= 100;
+        }
+
+        if val == 0 {
+            zero_count += 1;
+        }
+    }
+
+    zero_count
 }
